@@ -60,6 +60,13 @@
   - [[#which-key][Which-Key]]
   - [[#ws-butler][Ws-butler]]
   - [[#esup][Esup]]
+  - [[#dashboard][Dashboard]]
+  - [[#rainbow-mode][Rainbow Mode]]
+  - [[#eldoc-box][Eldoc Box]]
+  - [[#javelin][Javelin]]
+  - [[#compilation][Compilation]]
+  - [[#unreal-engine-compilation][Unreal Engine Compilation]]
+  - [[#compilation-problems-panel][Compilation "Problems" Panel]]
 
 * Introduction
 #+begin_src emacs-lisp :tangle no
@@ -382,7 +389,7 @@ Only works with package.el.
       ;;(recentf-mode t) ;; Enable recent file mode
 
       ;;(global-visual-line-mode t)           ;; Enable line wrapping (NOTE: breaks vundo)
-      (global-display-line-numbers-mode t)  ;; Display line numbers
+      ;;(global-display-line-numbers-mode t)  ;; Display line numbers
       ;;(display-line-numbers-type 'relative) ;; Relative line numbers
       (global-hl-line-mode t)               ;; Highlight current line
 
@@ -443,7 +450,7 @@ Notes:
 - To paste without yank select the text and use P. This line is especially for ThePrimeagen :)
 
 *To use it, remove :tangle no from the beginning of the source code block.*
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
     (use-package evil
       :hook (after-init . evil-mode)
       :init
@@ -455,7 +462,8 @@ Notes:
       (evil-want-keybinding nil)    ;; Disable evil bindings in other modes (It's not consistent and not good)
       (evil-want-C-u-scroll t)      ;; Set C-u to scroll up
       (evil-want-C-i-jump nil)      ;; Disables C-i jump
-      (evil-undo-system 'undo-redo) ;; C-r to redo
+
+      (evil-undo-system 'undo-fu) ;; C-r to redo
       (evil-want-fine-undo t)
       ;; (evil-respect-visual-line-mode t) ;; Move in wrap lines
       ;; Unmap keys in 'evil-maps. If not done, org-return-follows-link will not work
@@ -494,15 +502,35 @@ Note: The Leader key is what you will press when you want to access your keybind
       (load-file "~/.config/emacs/init.el"))
 
     (use-package general
-      ;; :after (evil) ;; <- evil
+      :after (evil) ;; <- evil
       :config
-      ;; (general-evil-setup) ;; <- evil
-      ;; Set up 'C-SPC' as the leader key
+      (general-evil-setup) ;; <- evil
+      ;; Set up 'SPC' as the leader key
       (general-create-definer start/leader-keys
-        ;; :states '(normal insert visual motion emacs) ;; <- evil
+        :states '(normal visual motion emacs) ;; <- evil
         :keymaps 'override
-        :prefix "C-SPC"
-        :global-prefix "C-SPC") ;; Set global leader key so we can access our keybindings from any state
+        :prefix "SPC"
+        :global-prefix "SPC") ;; Set global leader key so we can access our keybindings from any state
+
+      (general-define-key
+        :states '(normal visual motion)
+        ";" #'evil-ex
+        ":" #'evil-repeat-find-char)
+
+      (general-define-key
+        :states '(normal visual motion)
+        ";" #'evil-ex
+        ":" #'evil-repeat-find-char)
+
+       (general-define-key
+         "M-m" #'my-compile-project-build)
+
+        (general-define-key
+        "M-M" #'my-problems-show)
+
+        ;; Global error navigation
+        (global-set-key (kbd "M-n") #'next-error)
+        (global-set-key (kbd "M-p") #'previous-error)
 
       (start/leader-keys
         "." '(find-file :wk "Find file")
@@ -586,23 +614,35 @@ Note: The Leader key is what you will press when you want to access your keybind
         "r u" '(package-menu-filter-upgradable :wk "Package filter by upgradable")
 
         "r q" '(save-buffers-kill-emacs :wk "Quit Emacs and Daemon")
+        "r b" '(org-babel-tangle :wk "Recreate init.el")
         "r r" '(start/reload-config :wk "Reload Emacs config"))
 
       (start/leader-keys
         "t" '(:ignore t :wk "Toggle")
         "t t" '(visual-line-mode :wk "Toggle truncated lines (wrap)")
+        "t v" '(vundo :wk "Toggle Vundo - Visual undo tree")
         "t l" '(display-line-numbers-mode :wk "Toggle line numbers"))
+
+      (start/leader-keys
+        "w" '(:ignore t :wk "Window")
+        "w v" '(split-window-right :wk "Split window vertically")
+        "w s" '(split-window-below :wk "Split window horizontally")
+        "w h" '(evil-window-left :wk "Move to left window")
+        "w l" '(evil-window-right :wk "Move to right window")
+        "w j" '(evil-window-down :wk "Move to window below")
+        "w k" '(evil-window-up :wk "Move to window above"))
       )
 
+
     ;; Fix general.el leader key not working instantly in messages buffer with evil mode
-    ;;(use-package emacs
-    ;;  :after (evil general)
-    ;;  :ghook ('after-init-hook
-    ;;          (lambda (&rest _)
-    ;;            (when-let ((messages-buffer (get-buffer "*Messages*")))
-    ;;              (with-current-buffer messages-buffer
-    ;;                (evil-normalize-keymaps))))
-    ;;          nil nil t))
+    (use-package emacs
+      :after (evil general)
+      :ghook ('after-init-hook
+              (lambda (&rest _)
+                (when-let ((messages-buffer (get-buffer "*Messages*")))
+                  (with-current-buffer messages-buffer
+                    (evil-normalize-keymaps))))
+              nil nil t))
 #+end_src
 
 *** Creating keybindings the built in way
@@ -627,7 +667,7 @@ If you want to use this. Don't forget to add keybindings for undu-fu and vundo.
 Evil users don't need to add keybindings for undo-fu just change evil-undo-system to undo-fu.
 
 *To use it, remove :tangle no from the beginning of the source code block.*
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
     (use-package undo-fu
       :defer
       :config
@@ -849,7 +889,7 @@ You can also use treesit-auto, but it is updated quite slowly so we don't use it
 To explore the current buffer's syntax tree, use the treesit-explore-mode command.
 
 *To use it, remove :tangle no from the beginning of the source code block.*
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
     (setq treesit-language-source-alist
           '((bash "https://github.com/tree-sitter/tree-sitter-bash")
             (cmake "https://github.com/uyha/tree-sitter-cmake")
@@ -1401,7 +1441,7 @@ Which-key is a helper utility for keychords (which key to press).
       (which-key-sort-uppercase-first nil)
       (which-key-add-column-padding 1) ;; Number of spaces to add to the left of each column
       (which-key-min-display-lines 6)  ;; Increase the minimum lines to display because the default is only 1
-      (which-key-idle-delay 0.8)       ;; Set the time delay (in seconds) for the which-key popup to appear
+      (which-key-idle-delay 0.3)       ;; Set the time delay (in seconds) for the which-key popup to appear
       (which-key-max-description-length 25)
       (which-key-allow-imprecise-window-fit nil)) ;; Fixes which-key window slipping out in Emacs Daemon
 #+end_src
@@ -1423,4 +1463,485 @@ Benchmark Emacs Startup time: M-x esup
       :defer
       :custom
       (esup-depth 0))
+#+end_src
+
+** Dashboard
+Emacs start screen.
+
+*To use it, remove :tangle no from the beginning of the source code block.*
+#+begin_src emacs-lisp
+    (use-package dashboard
+    :ensure t
+    :config
+    (dashboard-setup-startup-hook))
+#+end_src
+
+** Rainbow Mode
+Colourise colour names in buffers.
+
+*To use it, remove :tangle no from the beginning of the source code block.*
+#+begin_src emacs-lisp
+    (use-package rainbow-mode
+    :ensure t
+    )
+#+end_src
+
+** Eldoc Box
+Displays ElDoc documentation in a childframe.
+The childframe is selectable and scrollable with mouse, even though the cursor is hidden.
+
+*To use it, remove :tangle no from the beginning of the source code block.*
+#+begin_src emacs-lisp
+    (use-package eldoc-box
+    :ensure t
+    :config
+        (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+    )
+#+end_src
+
+** Javelin
+Quick file and buffer bookmarking. Inspired by The Primaegans Harpoon.
+Pin bookmarks to numbered positions (1-9) for instant access.
+They are automatically separated by project and git branch.
+
+*To use it, remove :tangle no from the beginning of the source code block.*
+#+begin_src emacs-lisp
+    (use-package javelin
+    :ensure t
+    :config
+      (global-javelin-minor-mode 1)
+    )
+#+end_src
+
+** Compilation
+
+Looks for a build.sh in the projectile projects root directory.
+Also adds some sane customisations and defaults
+
+*To use it, remove :tangle no from the beginning of the source code block.*
+#+begin_src emacs-lisp
+    (require 'compile)
+    (require 'projectile)
+
+    (defgroup my-compile nil
+        "Project compilation helpers."
+        :group 'tools)
+
+    (defcustom my-compile-build-script "build.sh"
+        "Build script to look for in projectile root."
+        :type 'string)
+
+    (defun my-compile--project-root ()
+        "Return projectile project root, or error."
+        (or (projectile-project-root)
+        (user-error "Not in a projectile project")))
+
+    (defun my-compile--build-script-path ()
+        "Return absolute path to build script in project root, or error."
+        (let* ((root (my-compile--project-root))
+                (path (expand-file-name my-compile-build-script root)))
+            (unless (file-exists-p path)
+            (user-error "No %s found in projectile-root: %s" my-compile-build-script root))
+            path))
+
+    (defun my-compile-project-build ()
+        "Compile ./build.sh from the projectile project root."
+        (interactive)
+        (let* ((root (my-compile--project-root))
+                (script (my-compile--build-script-path))
+                (default-directory root)
+                (cmd (concat "./" (file-name-nondirectory script))))
+            (compile cmd)))
+
+    ;; Show *compilation* in a right-side vertical split
+    (add-to-list
+        'display-buffer-alist
+        '("\\*compilation\\*"
+        (display-buffer-in-side-window)
+        (side . right)
+        (slot . 0)
+        (window-width . 0.40)
+        (reusable-frames . visible)))
+
+    ;; Core compilation behaviour
+    (setq compilation-scroll-output 'first-error)              ; auto-scroll
+    (setq compilation-auto-jump-to-first-error t)   ; jump on first error
+    (setq compilation-max-output-line-length nil)   ; don't truncate lines
+    (setq compilation-always-kill t)                ; kill previous compile
+
+    (require 'ansi-color)
+
+    (defun my-compile--ansi-colorize ()
+    "Apply ANSI colors to compilation buffer."
+    (ansi-color-apply-on-region compilation-filter-start (point)))
+
+    (add-hook 'compilation-filter-hook #'my-compile--ansi-colorize)
+
+    (setq compilation-highlight-overlay t)
+
+;; TODO: Untested
+(defun my-compile-hide-on-success (buf msg)
+"Hide the compilation window if compilation succeeded.
+    BUF is the compilation buffer. MSG is the status message."
+(when (and (buffer-live-p buf)
+            (string-match-p "\\`finished" msg))
+    ;; Small delay so you can see the 'finished' line flash in the buffer.
+    (run-at-time
+    0.25 nil
+    (lambda (b)
+        (when (buffer-live-p b)
+        (let ((win (get-buffer-window b)))
+            (when (window-live-p win)
+            ;; Close the window, but keep the buffer around for later review.
+            (delete-window win)))))
+    buf)))
+
+(add-to-list 'compilation-finish-functions #'my-compile-hide-on-success)
+
+#+end_src
+
+** Unreal Engine Compilation
+
+Adds clang-style errors regex and other UE specific colouring options
+
+*To use it, remove :tangle no from the beginning of the source code block.*
+#+begin_src emacs-lisp
+    (require 'compile)
+    (require 'projectile)
+
+    ;; Clang-style errors: /path/file.cpp:123:45: error: ...
+    (setq compilation-error-regexp-alist
+        (cons 'clang compilation-error-regexp-alist))
+
+    (with-eval-after-load 'compile
+    (defun my-ue-compilation-font-lock ()
+    "Extra highlighting for UE build output."
+    (font-lock-add-keywords
+    nil
+    `(
+    ;; Core severity
+    ("\\<fatal error:\\>" . font-lock-constant-face)
+    ("\\<error:\\>"       . font-lock-warning-face)
+    ("\\<warning:\\>"     . font-lock-keyword-face)
+
+    ;; UE sections / headers
+    ("\\<UHT\\>\\|\\<UBT\\>\\|UnrealBuildTool\\|UnrealHeaderTool" . font-lock-function-name-face)
+
+    ;; Result line
+    ("^Result: Failed.*$"   . font-lock-warning-face)
+    ("^Result: Succeeded.*$" . font-lock-string-face)
+
+    ;; Action counters like: [1/8] Compile ...
+    ("^\\[\\([0-9]+\\)/\\([0-9]+\\)\\] \\(Compile\\|Link\\|Generate\\).*"
+    (0 font-lock-type-face))
+
+    ;; “Building …” / “Starting …” style banners
+    ("^[-=]+.*[-=]+$" . font-lock-comment-face)
+    ))
+    (font-lock-flush)))
+
+    (add-hook 'compilation-mode-hook #'my-ue-compilation-font-lock)
+
+#+end_src
+
+** Compilation "Problems" Panel
+
+Creates a buffer *Problems* backed by tabulated-list-mode
+
+*To use it, remove :tangle no from the beginning of the source code block.*
+#+begin_src emacs-lisp
+                            (require 'tabulated-list)
+                            (require 'cl-lib)
+                            (require 'subr-x)
+
+                            (defvar my-problems-source-buffer "*compilation*")
+                            (defvar my-problems-filter-kind 'all)   ;; 'all | 'errors | 'warnings
+                            (defvar my-problems-filter-file nil)    ;; nil or absolute/relative file string
+
+                            (defvar my-problems--items nil)         ;; internal cache of parsed issues
+
+                            (add-to-list
+                                'display-buffer-alist
+                                    '("\\*Problems\\*"
+                                        (display-buffer-in-side-window)
+                                        (side . right)
+                                        (slot . 1)                 ;; below compilation (slot 0)
+                                        (window-height . 0.30)
+                                        (reusable-frames . visible)))
+
+
+            (defface my-problems-error-face
+              '((t :inherit error))
+              "Face for errors in *Problems*.")
+
+            (defface my-problems-warning-face
+              '((t :inherit warning))
+              "Face for warnings in *Problems*.")
+
+            (defface my-problems-file-face
+              '((t :inherit font-lock-string-face))
+              "Face for file names in *Problems*.")
+
+            (defface my-problems-location-face
+              '((t :inherit font-lock-constant-face))
+              "Face for line/column in *Problems*.")
+
+        (defun my-problems--sev-face (sev)
+          (pcase sev
+            ('warning 'my-problems-warning-face)
+            (_        'my-problems-error-face)))
+
+                            (defun my-problems--project-root ()
+                                (when (fboundp 'projectile-project-root)
+                                (ignore-errors (projectile-project-root))))
+
+                            (defun my-problems--relpath (path)
+                                (let ((root (my-problems--project-root)))
+                                (if (and root (string-prefix-p (file-truename root) (file-truename path)))
+                                    (file-relative-name path root)
+                                    path)))
+
+                            (defun my-problems--parse-compilation ()
+                                "Parse *compilation* buffer and return list of plist issues."
+                                (let ((buf (get-buffer my-problems-source-buffer)))
+                                (unless (buffer-live-p buf)
+                                    (user-error "No buffer named %s" my-problems-source-buffer))
+                                (with-current-buffer buf
+                                    (save-excursion
+                                    (goto-char (point-min))
+                                    (let (out)
+                                        ;; clang-like:
+                                        ;; /path/file.cpp:264:55: error: message...
+                                        (while (re-search-forward
+                                                "^\\(/[^:\n]+\\):\\([0-9]+\\):\\([0-9]+\\): \\(fatal error\\|error\\|warning\\): \\(.*\\)$"
+                                                nil t)
+                                        (let* ((file (match-string 1))
+                                                (line (string-to-number (match-string 2)))
+                                                (col  (string-to-number (match-string 3)))
+                                                (kind (match-string 4))
+                                                (msg  (match-string 5))
+                                                (sev  (if (string-match-p "warning" kind) 'warning 'error)))
+                                            (push (list :file file :line line :col col :sev sev :kind kind :msg msg) out)))
+                                        (nreverse out))))))
+
+                            (defun my-problems--apply-filters (items)
+                                (let ((filef my-problems-filter-file)
+                                    (kindf my-problems-filter-kind))
+                                (cl-remove-if
+                                    (lambda (it)
+                                    (let ((sev (plist-get it :sev))
+                                            (file (plist-get it :file)))
+                                        (or (and (eq kindf 'errors)   (eq sev 'warning))
+                                            (and (eq kindf 'warnings) (eq sev 'error))
+                                            (and filef (not (string= filef file))
+                                                ;; also allow matching relative paths if user picked those
+                                                (not (string= filef (my-problems--relpath file)))))))
+                                    items)))
+
+                            (defun my-problems--unique-files (items)
+                                (let ((ht (make-hash-table :test 'equal)))
+                                (dolist (it items)
+                                    (puthash (plist-get it :file) t ht))
+                                (hash-table-keys ht)))
+
+                            (defun my-problems--header (items)
+                                (let* ((errs  (cl-count-if (lambda (it) (eq (plist-get it :sev) 'error)) items))
+                                        (warns (cl-count-if (lambda (it) (eq (plist-get it :sev) 'warning)) items))
+                                        (files (length (my-problems--unique-files items)))
+                                        (kf my-problems-filter-kind)
+                                        (ff my-problems-filter-file))
+                                (format "Problems: %d errors, %d warnings, %d files  |  Filter: %s%s"
+                                        errs warns files
+                                        (pcase kf ('all "all") ('errors "errors-only") ('warnings "warnings-only"))
+                                        (if ff (format "  file=%s" (my-problems--relpath ff)) ""))))
+
+        (defun my-problems--dedupe (items)
+          "Remove exact duplicate problem entries from ITEMS.
+
+        ITEMS is a list of plists with keys:
+        :file :line :col :sev :msg
+
+        Returns a new list preserving original order."
+          (let ((seen (make-hash-table :test 'equal))
+                out)
+            (dolist (it items (nreverse out))
+              (let ((key (list (plist-get it :file)
+                               (plist-get it :line)
+                               (plist-get it :col)
+                               (plist-get it :sev)
+                               (plist-get it :msg))))
+                (unless (gethash key seen)
+                  (puthash key t seen)
+                  (push it out))))))
+
+                (defvar my-problems-dedupe-enabled t)
+                (defun my-problems-toggle-dedupe ()
+                  (interactive)
+                  (setq my-problems-dedupe-enabled (not my-problems-dedupe-enabled))
+                  (my-problems-refresh)
+                  (message "Problems dedupe: %s" (if my-problems-dedupe-enabled "ON" "OFF")))
+
+
+                            (defun my-problems-refresh ()
+                                "Refresh the Problems buffer."
+                                (interactive)
+            ;;                    (setq my-problems--items (my-problems--parse-compilation))
+                                (setq my-problems--items
+                                    (let ((items (my-problems--parse-compilation)))
+                                        (if my-problems-dedupe-enabled
+                                            (my-problems--dedupe items)
+                                        items)))
+
+                                (let* ((filtered (my-problems--apply-filters my-problems--items)))
+                                (setq tabulated-list-entries
+                                        (mapcar
+                                        (lambda (it)
+                                            (let* ((file (plist-get it :file))
+                                                (line (plist-get it :line))
+                                                (col  (plist-get it :col))
+                                                (sev  (plist-get it :sev))
+                                                (msg  (plist-get it :msg))
+                                                (face (my-problems--sev-face sev))
+                                                (kind (if (eq sev 'warning) "Warning" "Error")))
+                                            (list it
+                                                    (vector
+                                                    (propertize kind 'face face)
+                                                    (propertize (my-problems--relpath file) 'face 'my-problems-file-face)
+                                                    (propertize (format "%d:%d" line col) 'face 'my-problems-location-face)
+                                                    (propertize msg 'face face)))))
+                                        filtered))
+                                (setq header-line-format (my-problems--header filtered))
+                                (tabulated-list-print t)))
+
+                            (defun my-build--main-window ()
+                                "Pick a sane window for visiting source: non-side, not compilation/problems."
+                                (or
+                                (get-window-with-predicate
+                                (lambda (w)
+                                    (and (window-live-p w)
+                                        (not (my-build--side-window-p w))
+                                        (let ((bn (buffer-name (window-buffer w))))
+                                            (not (member bn '("*compilation*" "*Problems*")))))))
+                                ;; fallback: if everything is side windows, just use current
+                                (selected-window)))
+
+                            ;; Make Problems RET jump in the main window (replace your my-problems-jump with this)
+                            (defun my-problems-jump ()
+                                "Jump to the problem at point, using a main editing window."
+                                (interactive)
+                                (let ((it (tabulated-list-get-id)))
+                                (unless it (user-error "No problem on this line"))
+                                (let* ((file (plist-get it :file))
+                                        (line (plist-get it :line))
+                                        (col  (plist-get it :col))
+                                        (win  (my-build--main-window)))
+                                    (select-window win)
+                                    (find-file file)
+                                    (goto-char (point-min))
+                                    (forward-line (1- line))
+                                    (forward-char (max 0 (1- col))))))
+
+
+                        ;; Make compilation/next-error jumps open in the main window too
+                        (defun my-build--compilation-goto-locus-main-window (orig msg loc end-loc)
+                            (let ((win (my-build--main-window)))
+                            (with-selected-window win
+                                (funcall orig msg loc end-loc))))
+
+                    (with-eval-after-load 'compile
+                      (advice-add 'compilation-goto-locus :around #'my-build--compilation-goto-locus-main-window))
+
+                    (defun my-problems-set-filter-file ()
+                        "Pick a file to filter problems by."
+                        (interactive)
+                        (unless my-problems--items
+                        (setq my-problems--items (my-problems--parse-compilation)))
+                        (let* ((files (sort (my-problems--unique-files my-problems--items) #'string<))
+                                (choices (mapcar #'my-problems--relpath files))
+                                (picked (completing-read "Filter file: " choices nil t)))
+                        ;; store absolute match if possible
+                        (setq my-problems-filter-file
+                                (or (cl-find-if (lambda (f) (string= (my-problems--relpath f) picked)) files)
+                                    picked))
+                        (my-problems-refresh)))
+
+                    (defun my-problems-clear-filter-file ()
+                        (interactive)
+                        (setq my-problems-filter-file nil)
+                        (my-problems-refresh))
+
+                    (defun my-problems-filter-all () (interactive) (setq my-problems-filter-kind 'all) (my-problems-refresh))
+                    (defun my-problems-filter-errors () (interactive) (setq my-problems-filter-kind 'errors) (my-problems-refresh))
+                    (defun my-problems-filter-warnings () (interactive) (setq my-problems-filter-kind 'warnings) (my-problems-refresh))
+
+                    (define-derived-mode my-problems-mode tabulated-list-mode "Problems"
+                        "IDE-like problems list for compilation output."
+                        (setq tabulated-list-format [("Type" 8 t)
+                                                    ("File" 45 t)
+                                                    ("Line:Col" 10 t)
+                                                    ("Message" 0 t)])
+                        (setq tabulated-list-padding 2)
+                        (tabulated-list-init-header)
+                        (setq truncate-lines t))
+
+                    (let ((map my-problems-mode-map))
+                        (define-key map (kbd "g") #'my-problems-refresh)
+                        (define-key map (kbd "RET") #'my-problems-jump)
+                        (define-key map (kbd "e") #'my-problems-filter-errors)
+                        (define-key map (kbd "w") #'my-problems-filter-warnings)
+                        (define-key map (kbd "a") #'my-problems-filter-all)
+                        (define-key map (kbd "f") #'my-problems-set-filter-file)
+                        (define-key map (kbd "F") #'my-problems-clear-filter-file)
+                        (define-key map (kbd "q") #'quit-window)
+
+                        ;; nice: n/p move lines
+                        (define-key map (kbd "n") #'next-line)
+                        (define-key map (kbd "p") #'previous-line))
+
+               (with-eval-after-load 'evil
+                ;; Make sure Problems opens in normal state
+                (evil-set-initial-state 'my-problems-mode 'normal)
+
+                ;; Bind keys in Evil normal state for this mode
+                (evil-define-key 'normal my-problems-mode-map
+                    (kbd "q") #'quit-window
+                    (kbd "g") #'my-problems-refresh
+                    (kbd "RET") #'my-problems-jump
+                    (kbd "e") #'my-problems-filter-errors
+                    (kbd "w") #'my-problems-filter-warnings
+                    (kbd "a") #'my-problems-filter-all
+                    (kbd "f") #'my-problems-set-filter-file
+                    (kbd "F") #'my-problems-clear-filter-file
+                    (kbd "d") #'my-problems-toggle-dedupe))
+
+                (defun my-build--side-window-p (win)
+                    (window-parameter win 'window-side))
+
+                (defun my-build--compilation-window ()
+                    (get-buffer-window "*compilation*" 0))
+
+                    (defun my-problems-show (&optional focus)
+                        "Show (or refresh) the Problems panel from the latest compilation.
+                        If FOCUS is non-nil, select the Problems window."
+                        (interactive (list t))
+                        (let ((buf (get-buffer-create "*Problems*")))
+                        (with-current-buffer buf
+                            (my-problems-mode)
+                            (my-problems-refresh))
+                        (let ((win (display-buffer buf)))
+                            (when focus
+                            (select-window win))
+                            win)))
+
+                    (defun my-problems-auto-show-on-failure (buf msg)
+                        "On failed compilation, show Problems below compilation and focus it."
+                        (when (and (buffer-live-p buf)
+                                    (stringp msg)
+                                    (not (string-prefix-p "finished" msg)))
+                        (my-problems-show t)))
+
+                    (add-to-list 'compilation-finish-functions #'my-problems-auto-show-on-failure)
+
+    (add-hook 'my-problems-mode-hook #'hl-line-mode)
+
 #+end_src
