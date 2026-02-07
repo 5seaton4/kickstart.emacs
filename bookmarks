@@ -1,0 +1,17 @@
+;;;; Emacs Bookmark Format Version 1;;;; -*- coding: utf-8-emacs; mode: lisp-data -*-
+;;; This format is meant to be slightly human-readable;
+;;; nevertheless, you probably don't want to edit it.
+;;; -*- End Of Bookmark File Format Version Stamp -*-
+(("javelin:emacs#main:2"
+ (filename . "~/.config/emacs/init.org")
+ (front-context-string . "  - [[#rainbow-d")
+ (rear-context-string . "ish][Diminish]]\n")
+ (position . 2029)
+ (last-modified 27012 35358 64828 389000))
+("javelin:emacs#main:1"
+ (filename . "~/.config/emacs/init.org")
+ (front-context-string . "  - [[#startup-p")
+ (rear-context-string . "& Performance]]\n")
+ (position . 516)
+ (last-modified 27012 35353 176871 550000))
+)

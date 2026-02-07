@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: UFUNCTION(BlueprintPure)
+# key: ufp
+# condition: (ue--yas-can-expand-p)
+# --
+/**
+ * $4
+ */
+UFUNCTION(BlueprintPure, Category="${1:`(file-name-base)`}")
+${2:float} ${3:MyFunction}() const;

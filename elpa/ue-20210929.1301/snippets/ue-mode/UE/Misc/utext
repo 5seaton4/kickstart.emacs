@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: TEXT
+# key: utext
+# condition: (ue--yas-can-expand-p)
+# --
+TEXT("${1:}");

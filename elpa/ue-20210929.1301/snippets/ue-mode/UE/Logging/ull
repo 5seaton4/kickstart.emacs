@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: UE_LOG
+# key: ull
+# condition: (ue--yas-can-expand-p)
+# --
+UE_LOG(Log${1:Category}, ${2:Warning}, TEXT("${3:Message}"));

@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: Component UPROPERTY
+# key: upc
+# condition: (ue--yas-can-expand-p)
+# --
+/**
+ * $5
+ */
+UPROPERTY(Visible${1:Anywhere}, BlueprintReadOnly, Category="Components")
+${2:USceneComponent}* ${3:My}${4:Component};

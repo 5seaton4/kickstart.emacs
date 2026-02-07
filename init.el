@@ -181,7 +181,11 @@
 
     ;; Projectile
     "p" '(projectile-command-map :wk "Projectile")
-    "s p" '(projectile-discover-projects-in-search-path :wk "Search for projects"))
+    "s p" '(projectile-discover-projects-in-search-path :wk "Search for projects")
+    "s p" '(projectile-discover-projects-in-search-path :wk "Search for projects")
+    "SPC" '(consult-fd :wk "Search files with fd")
+    "*"   '(consult-ripgrep :wk "Search with ripgrep")
+    )
 
   (start/leader-keys
     "m" '(:ignore t :wk "Bookmarks & Registers")
@@ -324,7 +328,6 @@
 (use-package doom-modeline
   :custom
   (doom-modeline-height 25) ;; Set modeline height
-  (setq doom-modeline-buffer-file-name-style 'truncate-upto-project)
   :hook (after-init . doom-modeline-mode))
 
 (use-package nerd-icons :defer)

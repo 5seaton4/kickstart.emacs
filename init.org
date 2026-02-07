@@ -67,6 +67,7 @@
   - [[#compilation][Compilation]]
   - [[#unreal-engine-compilation][Unreal Engine Compilation]]
   - [[#compilation-problems-panel][Compilation "Problems" Panel]]
+- [[#todo][TODO]]
 
 * Introduction
 #+begin_src emacs-lisp :tangle no
@@ -541,7 +542,11 @@ Note: The Leader key is what you will press when you want to access your keybind
 
         ;; Projectile
         "p" '(projectile-command-map :wk "Projectile")
-        "s p" '(projectile-discover-projects-in-search-path :wk "Search for projects"))
+        "s p" '(projectile-discover-projects-in-search-path :wk "Search for projects")
+        "s p" '(projectile-discover-projects-in-search-path :wk "Search for projects")
+        "SPC" '(consult-fd :wk "Search files with fd")
+        "*"   '(consult-ripgrep :wk "Search with ripgrep")
+        )
 
       (start/leader-keys
         "m" '(:ignore t :wk "Bookmarks & Registers")
@@ -1945,3 +1950,8 @@ Creates a buffer *Problems* backed by tabulated-list-mode
     (add-hook 'my-problems-mode-hook #'hl-line-mode)
 
 #+end_src
+
+* TODO
+- Creating a new window should take its size from all windows open it should rebalance
+- Get clangd tags working and peeking definitions
+- When doing a file search or a general text search we should be able to select previous entries

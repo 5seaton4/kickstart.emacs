@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: UFUNCTION(BlueprintCallable)
+# key: uff
+# condition: (ue--yas-can-expand-p)
+# --
+/**
+ * $4
+ */
+UFUNCTION(BlueprintCallable, Category="${1:`(file-name-base)`}")
+${2:void} ${3:MyFunction}();

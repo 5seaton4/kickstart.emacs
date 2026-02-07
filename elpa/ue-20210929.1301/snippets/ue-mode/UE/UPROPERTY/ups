@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: TSubclassOf UPROPERTY
+# key: ups
+# condition: (ue--yas-can-expand-p)
+# --
+/**
+ * $4
+ */
+UPROPERTY(EditDefaultsOnly, Category="${1:`(file-name-base)`}")
+TSubclassOf<${2:AActor}> ${3:My}Class;
