@@ -1953,5 +1953,12 @@ Creates a buffer *Problems* backed by tabulated-list-mode
 
 * TODO
 - Creating a new window should take its size from all windows open it should rebalance
+- Need an easy way to jump to header/cpp files
 - Get clangd tags working and peeking definitions
 - When doing a file search or a general text search we should be able to select previous entries
+- Kill ring
+- Auto format on save
+- Vim hotkey for traversing camel case
+- Magit
+- Buffers with b b
+- Files with f f?
